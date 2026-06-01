@@ -21,25 +21,29 @@ export default function CartItem({
   onRemove: (id: string) => void
 }) {
   return (
-    <div className="flex items-center gap-3 py-3 border-b border-gray-50 last:border-0">
+    <div className="flex items-center gap-3 py-3 border-b border-gray-100 last:border-0">
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-gray-800 truncate">{item.name}</p>
-        <p className="text-xs text-indigo-600 font-semibold mt-0.5">{formatRupiah(item.price)}</p>
+        <p className="text-xs text-indigo-600 font-semibold mt-0.5">
+          {formatRupiah(item.price)}
+        </p>
       </div>
 
       {/* Qty Control */}
       <div className="flex items-center gap-1.5">
         <button
           onClick={() => onDecrease(item.id)}
-          className="w-6 h-6 rounded-full border border-gray-200 flex items-center justify-center hover:bg-gray-50"
+          className="w-6 h-6 rounded-full border border-gray-400 bg-white flex items-center justify-center hover:bg-gray-100 text-gray-700"
         >
           <Minus size={11} />
         </button>
-        <span className="text-sm font-semibold w-6 text-center">{item.quantity}</span>
+        <span className="text-sm font-semibold w-6 text-center text-gray-800">
+          {item.quantity}
+        </span>
         <button
           onClick={() => onIncrease(item.id)}
           disabled={item.quantity >= item.stock}
-          className="w-6 h-6 rounded-full border border-gray-200 flex items-center justify-center hover:bg-gray-50 disabled:opacity-40"
+          className="w-6 h-6 rounded-full border border-gray-400 bg-white flex items-center justify-center hover:bg-gray-100 text-gray-700 disabled:opacity-40"
         >
           <Plus size={11} />
         </button>
@@ -47,13 +51,15 @@ export default function CartItem({
 
       {/* Subtotal */}
       <div className="text-right min-w-[72px]">
-        <p className="text-sm font-bold text-gray-800">{formatRupiah(item.price * item.quantity)}</p>
+        <p className="text-sm font-bold text-gray-800">
+          {formatRupiah(item.price * item.quantity)}
+        </p>
       </div>
 
       {/* Hapus */}
       <button
         onClick={() => onRemove(item.id)}
-        className="text-gray-300 hover:text-red-400 transition-colors"
+        className="text-gray-400 hover:text-red-400 transition-colors"
       >
         <Trash2 size={15} />
       </button>
