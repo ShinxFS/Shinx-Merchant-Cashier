@@ -1,0 +1,275 @@
+'use client'
+
+import { useState } from 'react'
+import { createClient } from '@/lib/supabase/client'
+import { X, Upload } from 'lucide-react'
+
+interface Category {
+  id: string
+  name: string
+  color: string
+}
+
+interface Product {
+  id: string
+  name: string
+  sku: string | null
+  price: number
+  cost_price: number
+  stock: number
+  unit: string
+  image_url: string | null
+  is_active: boolean
+  category_id: string | null
+}
+
+interface Props {
+  product: Product | null
+  categories: Category[]
+  onClose: () => void
+}
+
+export default function ProductFormModal({ product, categories, onClose }: Props) {
+  const supabase = createClient()
+  const isEdit = !!product
+
+  const [form, setForm] = useState({
+    name: product?.name ?? '',
+    sku: product?.sku ?? '',
+    price: product?.price ?? 0,
+    cost_price: product?.cost_price ?? 0,
+    stock: product?.stock ?? 0,
+    unit: product?.unit ?? 'pcs',
+    category_id: product?.category_id ?? '',
+    is_active: product?.is_active ?? true,
+    image_url: product?.image_url ?? '',
+  })
+
+  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [imagePreview, setImagePreview] = useState(product?.image_url ?? '')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setImageFile(file)
+    setImagePreview(URL.createObjectURL(file))
+  }
+
+  const uploadImage = async (userId: string): Promise<string | null> => {
+    if (!imageFile) return form.image_url || null
+    const ext = imageFile.name.split('.').pop()
+    const path = `${userId}/${Date.now()}.${ext}`
+    const { error } = await supabase.storage
+      .from('product-images')
+      .upload(path, imageFile, { upsert: true })
+    if (error) return null
+    const { data } = supabase.storage.from('product-images').getPublicUrl(path)
+    return data.publicUrl
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setError('')
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    const imageUrl = await uploadImage(user.id)
+
+    const payload = {
+      name: form.name,
+      sku: form.sku || null,
+      price: Number(form.price),
+      cost_price: Number(form.cost_price),
+      stock: Number(form.stock),
+      unit: form.unit,
+      category_id: form.category_id || null,
+      is_active: form.is_active,
+      image_url: imageUrl,
+      updated_at: new Date().toISOString(),
+    }
+
+    if (isEdit) {
+      const { error } = await supabase
+        .from('products')
+        .update(payload)
+        .eq('id', product.id)
+      if (error) { setError(error.message); setLoading(false); return }
+    } else {
+      const { error } = await supabase
+        .from('products')
+        .insert({ ...payload, user_id: user.id })
+      if (error) { setError(error.message); setLoading(false); return }
+    }
+
+    setLoading(false)
+    onClose()
+  }
+
+  const set = (key: string, value: unknown) =>
+    setForm(prev => ({ ...prev, [key]: value }))
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+      <div className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white">
+          <h3 className="font-bold text-gray-900">{isEdit ? 'Edit Produk' : 'Tambah Produk'}</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            <X size={20} />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          {error && (
+            <div className="bg-red-50 text-red-600 text-sm px-4 py-3 rounded-lg">{error}</div>
+          )}
+
+          {/* Upload Gambar */}
+          <div className="flex items-center gap-4">
+            <div className="w-20 h-20 rounded-xl bg-gray-100 flex items-center justify-center overflow-hidden flex-shrink-0">
+              {imagePreview
+                ? <img src={imagePreview} alt="" className="w-full h-full object-cover" />
+                : <span className="text-3xl">🛍️</span>
+              }
+            </div>
+            <div>
+              <label className="cursor-pointer flex items-center gap-2 text-sm text-indigo-600 font-medium hover:text-indigo-700">
+                <Upload size={15} />
+                Upload Foto
+                <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
+              </label>
+              <p className="text-xs text-gray-400 mt-1">JPG, PNG max 2MB</p>
+            </div>
+          </div>
+
+          {/* Nama */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Nama Produk *</label>
+            <input
+              required
+              value={form.name}
+              onChange={e => set('name', e.target.value)}
+              placeholder="Contoh: Kopi Hitam"
+              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+
+          {/* SKU */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">SKU <span className="text-gray-400">(opsional)</span></label>
+            <input
+              value={form.sku}
+              onChange={e => set('sku', e.target.value)}
+              placeholder="Contoh: KOP-001"
+              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+
+          {/* Harga */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Harga Jual *</label>
+              <input
+                required
+                type="number"
+                min={0}
+                value={form.price}
+                onChange={e => set('price', e.target.value)}
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Harga Modal</label>
+              <input
+                type="number"
+                min={0}
+                value={form.cost_price}
+                onChange={e => set('cost_price', e.target.value)}
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+            </div>
+          </div>
+
+          {/* Stok & Satuan */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Stok *</label>
+              <input
+                required
+                type="number"
+                min={0}
+                value={form.stock}
+                onChange={e => set('stock', e.target.value)}
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Satuan</label>
+              <select
+                value={form.unit}
+                onChange={e => set('unit', e.target.value)}
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              >
+                {['pcs', 'cup', 'porsi', 'lusin', 'kg', 'gram', 'liter', 'botol', 'pack', 'box'].map(u => (
+                  <option key={u} value={u}>{u}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Kategori */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Kategori</label>
+            <select
+              value={form.category_id}
+              onChange={e => set('category_id', e.target.value)}
+              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              <option value="">— Tanpa Kategori —</option>
+              {categories.map(c => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Status */}
+          <div className="flex items-center gap-3">
+            <input
+              type="checkbox"
+              id="is_active"
+              checked={form.is_active}
+              onChange={e => set('is_active', e.target.checked)}
+              className="w-4 h-4 accent-indigo-600"
+            />
+            <label htmlFor="is_active" className="text-sm text-gray-700">
+              Produk aktif (tampil di kasir)
+            </label>
+          </div>
+
+          {/* Tombol */}
+          <div className="flex gap-3 pt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 py-2.5 border border-gray-300 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              Batal
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="flex-1 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+            >
+              {loading ? 'Menyimpan...' : isEdit ? 'Simpan Perubahan' : 'Tambah Produk'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}

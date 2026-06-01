@@ -1,0 +1,208 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import { createClient } from '@/lib/supabase/client'
+import { formatRupiah } from '@/lib/utils'
+import { Plus, Pencil, Trash2, Package, Search } from 'lucide-react'
+import ProductFormModal from '@/components/products/ProductFormModal'
+
+interface Category {
+  id: string
+  name: string
+  color: string
+}
+
+interface Product {
+  id: string
+  name: string
+  sku: string | null
+  price: number
+  cost_price: number
+  stock: number
+  unit: string
+  image_url: string | null
+  is_active: boolean
+  category_id: string | null
+  categories?: Category | null
+}
+
+export default function ProductsPage() {
+  const supabase = createClient()
+  const [products, setProducts] = useState<Product[]>([])
+  const [categories, setCategories] = useState<Category[]>([])
+  const [search, setSearch] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [showModal, setShowModal] = useState(false)
+  const [editProduct, setEditProduct] = useState<Product | null>(null)
+
+  const load = async () => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    const [{ data: prods }, { data: cats }] = await Promise.all([
+      supabase
+        .from('products')
+        .select('*, categories(id, name, color)')
+        .eq('user_id', user.id)
+        .order('name'),
+      supabase
+        .from('categories')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('name'),
+    ])
+
+    setProducts(prods ?? [])
+    setCategories(cats ?? [])
+    setLoading(false)
+  }
+
+  useEffect(() => { load() }, [])
+
+  const filtered = products.filter(p =>
+    p.name.toLowerCase().includes(search.toLowerCase()) ||
+    p.sku?.toLowerCase().includes(search.toLowerCase())
+  )
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Hapus produk ini?')) return
+    await supabase.from('products').delete().eq('id', id)
+    setProducts(prev => prev.filter(p => p.id !== id))
+  }
+
+  const handleEdit = (product: Product) => {
+    setEditProduct(product)
+    setShowModal(true)
+  }
+
+  const handleModalClose = () => {
+    setShowModal(false)
+    setEditProduct(null)
+    load()
+  }
+
+  return (
+    <div className="p-6 max-w-5xl mx-auto">
+
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-xl font-bold text-gray-900">Produk</h1>
+          <p className="text-sm text-gray-500 mt-0.5">{products.length} produk terdaftar</p>
+        </div>
+        <button
+          onClick={() => { setEditProduct(null); setShowModal(true) }}
+          className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-indigo-700 transition-colors"
+        >
+          <Plus size={16} />
+          Tambah Produk
+        </button>
+      </div>
+
+      {/* Search */}
+      <div className="relative mb-4">
+        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+        <input
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder="Cari nama atau SKU..."
+          className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+        />
+      </div>
+
+      {/* Tabel */}
+      {loading ? (
+        <div className="text-center py-16 text-gray-400 text-sm">Memuat produk...</div>
+      ) : filtered.length === 0 ? (
+        <div className="text-center py-16">
+          <Package size={40} className="text-gray-200 mx-auto mb-3" />
+          <p className="text-gray-400 text-sm">
+            {products.length === 0 ? 'Belum ada produk. Tambah produk pertama kamu!' : 'Produk tidak ditemukan'}
+          </p>
+        </div>
+      ) : (
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-gray-100 bg-gray-50">
+                <th className="text-left text-xs font-semibold text-gray-500 uppercase px-4 py-3">Produk</th>
+                <th className="text-left text-xs font-semibold text-gray-500 uppercase px-4 py-3 hidden sm:table-cell">Kategori</th>
+                <th className="text-right text-xs font-semibold text-gray-500 uppercase px-4 py-3">Harga</th>
+                <th className="text-right text-xs font-semibold text-gray-500 uppercase px-4 py-3 hidden md:table-cell">Stok</th>
+                <th className="text-right text-xs font-semibold text-gray-500 uppercase px-4 py-3">Aksi</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {filtered.map(product => (
+                <tr key={product.id} className="hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden flex-shrink-0">
+                        {product.image_url
+                          ? <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
+                          : <span className="text-lg">🛍️</span>
+                        }
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-800">{product.name}</p>
+                        {product.sku && <p className="text-xs text-gray-400">{product.sku}</p>}
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 hidden sm:table-cell">
+                    {product.categories ? (
+                      <span
+                        className="text-xs px-2 py-1 rounded-lg font-medium"
+                        style={{
+                          backgroundColor: product.categories.color + '20',
+                          color: product.categories.color
+                        }}
+                      >
+                        {product.categories.name}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-gray-300">—</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <p className="text-sm font-semibold text-gray-800">{formatRupiah(product.price)}</p>
+                  </td>
+                  <td className="px-4 py-3 text-right hidden md:table-cell">
+                    <span className={`text-sm font-medium ${product.stock <= 5 ? 'text-red-500' : 'text-gray-700'}`}>
+                      {product.stock} {product.unit}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center justify-end gap-1">
+                      <button
+                        onClick={() => handleEdit(product)}
+                        className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                      >
+                        <Pencil size={15} />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(product.id)}
+                        className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Modal */}
+      {showModal && (
+        <ProductFormModal
+          product={editProduct}
+          categories={categories}
+          onClose={handleModalClose}
+        />
+      )}
+    </div>
+  )
+}
