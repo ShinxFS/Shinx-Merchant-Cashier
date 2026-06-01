@@ -106,7 +106,6 @@ export default function ReportsPage() {
     <div className="p-6 max-w-5xl mx-auto space-y-6">
       <h1 className="text-xl font-bold text-gray-900">Laporan Penjualan</h1>
 
-      {/* Toggle */}
       <div className="flex gap-2">
         {(['weekly', 'monthly'] as const).map(v => (
           <button
@@ -123,7 +122,6 @@ export default function ReportsPage() {
         ))}
       </div>
 
-      {/* Stat */}
       <div className="grid grid-cols-2 gap-4">
         <div className="bg-white rounded-xl border border-gray-200 p-4">
           <div className="flex items-center gap-2 mb-1">
@@ -141,16 +139,15 @@ export default function ReportsPage() {
         </div>
       </div>
 
-      {/* Grafik Pendapatan */}
       <div className="bg-white rounded-xl border border-gray-200 p-5">
         <h2 className="font-semibold text-gray-800 mb-4">Grafik Pendapatan</h2>
         <ResponsiveContainer width="100%" height={220}>
           <BarChart data={chartData} barSize={32}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
             <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#9ca3af' }} />
-            <YAxis tick={{ fontSize: 11, fill: '#9ca3af' }} tickFormatter={v => `${v / 1000}k`} />
+            <YAxis tick={{ fontSize: 11, fill: '#9ca3af' }} tickFormatter={(v: any) => `${Number(v) / 1000}k`} />
             <Tooltip
-              formatter={(v: number) => [formatRupiah(v), 'Pendapatan']}
+              formatter={(v: any) => [formatRupiah(Number(v)), 'Pendapatan']}
               contentStyle={{
                 borderRadius: '8px',
                 border: '1px solid #e5e7eb',
@@ -162,7 +159,6 @@ export default function ReportsPage() {
         </ResponsiveContainer>
       </div>
 
-      {/* Grafik Transaksi */}
       <div className="bg-white rounded-xl border border-gray-200 p-5">
         <h2 className="font-semibold text-gray-800 mb-4">Jumlah Transaksi</h2>
         <ResponsiveContainer width="100%" height={200}>
@@ -171,7 +167,7 @@ export default function ReportsPage() {
             <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#9ca3af' }} />
             <YAxis tick={{ fontSize: 11, fill: '#9ca3af' }} allowDecimals={false} />
             <Tooltip
-              formatter={(v: number) => [v, 'Transaksi']}
+              formatter={(v: any) => [v, 'Transaksi']}
               contentStyle={{
                 borderRadius: '8px',
                 border: '1px solid #e5e7eb',
@@ -183,7 +179,6 @@ export default function ReportsPage() {
         </ResponsiveContainer>
       </div>
 
-      {/* Top Produk */}
       <div className="bg-white rounded-xl border border-gray-200 p-5">
         <div className="flex items-center gap-2 mb-4">
           <Package size={16} className="text-purple-500" />
