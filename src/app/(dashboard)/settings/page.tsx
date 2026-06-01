@@ -16,6 +16,8 @@ const PRESET_COLORS = [
   '#3b82f6', '#06b6d4',
 ]
 
+const inputClass = "w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+
 export default function SettingsPage() {
   const supabase = createClient()
   const [profile, setProfile] = useState({
@@ -34,12 +36,10 @@ export default function SettingsPage() {
     const load = async () => {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
-
       const [{ data: prof }, { data: cats }] = await Promise.all([
         supabase.from('profiles').select('*').eq('id', user.id).single(),
         supabase.from('categories').select('*').eq('user_id', user.id).order('name'),
       ])
-
       if (prof) setProfile({
         business_name: prof.business_name ?? '',
         owner_name: prof.owner_name ?? '',
@@ -56,7 +56,6 @@ export default function SettingsPage() {
     setLoading(true)
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
-
     await supabase.from('profiles').update(profile).eq('id', user.id)
     setLoading(false)
     setSaved(true)
@@ -67,17 +66,12 @@ export default function SettingsPage() {
     if (!newCatName.trim()) return
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
-
     const { data } = await supabase
       .from('categories')
       .insert({ user_id: user.id, name: newCatName.trim(), color: newCatColor })
       .select()
       .single()
-
-    if (data) {
-      setCategories(prev => [...prev, data])
-      setNewCatName('')
-    }
+    if (data) { setCategories(prev => [...prev, data]); setNewCatName('') }
   }
 
   const handleDeleteCategory = async (id: string) => {
@@ -96,7 +90,7 @@ export default function SettingsPage() {
         <form onSubmit={handleSaveProfile} className="space-y-4">
 
           {saved && (
-            <div className="bg-green-50 text-green-700 text-sm px-4 py-2.5 rounded-lg">
+            <div className="bg-green-50 text-green-700 text-sm px-4 py-2.5 rounded-lg border border-green-200">
               ✅ Perubahan berhasil disimpan!
             </div>
           )}
@@ -106,7 +100,8 @@ export default function SettingsPage() {
             <input
               value={profile.business_name}
               onChange={e => setProfile(p => ({ ...p, business_name: e.target.value }))}
-              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              placeholder="Toko Shinx"
+              className={inputClass}
             />
           </div>
 
@@ -116,7 +111,7 @@ export default function SettingsPage() {
               value={profile.owner_name}
               onChange={e => setProfile(p => ({ ...p, owner_name: e.target.value }))}
               placeholder="Nama pemilik toko"
-              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className={inputClass}
             />
           </div>
 
@@ -126,7 +121,7 @@ export default function SettingsPage() {
               value={profile.phone}
               onChange={e => setProfile(p => ({ ...p, phone: e.target.value }))}
               placeholder="08xxxxxxxxxx"
-              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className={inputClass}
             />
           </div>
 
@@ -137,7 +132,7 @@ export default function SettingsPage() {
               onChange={e => setProfile(p => ({ ...p, address: e.target.value }))}
               rows={3}
               placeholder="Alamat lengkap toko"
-              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+              className={`${inputClass} resize-none`}
             />
           </div>
 
@@ -152,18 +147,17 @@ export default function SettingsPage() {
         </form>
       </div>
 
-      {/* Manajemen Kategori */}
+      {/* Kategori */}
       <div className="bg-white rounded-xl border border-gray-200 p-6">
         <h2 className="font-semibold text-gray-800 mb-4">Kategori Produk</h2>
 
-        {/* Tambah kategori */}
         <div className="flex gap-2 mb-4">
           <input
             value={newCatName}
             onChange={e => setNewCatName(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleAddCategory()}
             placeholder="Nama kategori baru..."
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
           <button
             onClick={handleAddCategory}
@@ -185,16 +179,12 @@ export default function SettingsPage() {
           ))}
         </div>
 
-        {/* List kategori */}
         {categories.length === 0 ? (
           <p className="text-sm text-gray-400 text-center py-4">Belum ada kategori</p>
         ) : (
           <div className="space-y-2">
             {categories.map(cat => (
-              <div
-                key={cat.id}
-                className="flex items-center justify-between px-3 py-2.5 rounded-lg bg-gray-50"
-              >
+              <div key={cat.id} className="flex items-center justify-between px-3 py-2.5 rounded-lg bg-gray-50">
                 <div className="flex items-center gap-2.5">
                   <div className="w-3 h-3 rounded-full" style={{ backgroundColor: cat.color }} />
                   <span className="text-sm text-gray-700">{cat.name}</span>

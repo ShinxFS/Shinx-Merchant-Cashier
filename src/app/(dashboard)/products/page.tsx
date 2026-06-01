@@ -110,6 +110,34 @@ export default function ProductsPage() {
         />
       </div>
 
+      {/* Notifikasi stok menipis */}
+      {products.filter(p => p.stock <= 5 && p.stock > 0).length > 0 && (
+        <div className="mb-4 bg-orange-50 border border-orange-200 rounded-xl px-4 py-3">
+          <p className="text-sm font-semibold text-orange-700 mb-1">⚠️ Stok Menipis</p>
+          <div className="flex flex-wrap gap-2">
+            {products.filter(p => p.stock <= 5 && p.stock > 0).map(p => (
+              <span key={p.id} className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded-lg">
+                {p.name} — sisa {p.stock} {p.unit}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Notifikasi stok habis */}
+      {products.filter(p => p.stock === 0).length > 0 && (
+        <div className="mb-4 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+          <p className="text-sm font-semibold text-red-700 mb-1">🚫 Stok Habis</p>
+          <div className="flex flex-wrap gap-2">
+            {products.filter(p => p.stock === 0).map(p => (
+              <span key={p.id} className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded-lg">
+                {p.name}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Tabel */}
       {loading ? (
         <div className="text-center py-16 text-gray-400 text-sm">Memuat produk...</div>
@@ -155,7 +183,7 @@ export default function ProductsPage() {
                         className="text-xs px-2 py-1 rounded-lg font-medium"
                         style={{
                           backgroundColor: product.categories.color + '20',
-                          color: product.categories.color
+                          color: product.categories.color,
                         }}
                       >
                         {product.categories.name}
@@ -195,7 +223,6 @@ export default function ProductsPage() {
         </div>
       )}
 
-      {/* Modal */}
       {showModal && (
         <ProductFormModal
           product={editProduct}

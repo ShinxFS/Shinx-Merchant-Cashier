@@ -12,8 +12,8 @@ import {
   Settings,
   LogOut,
   Menu,
-  X,
-  Store
+  Store,
+  BarChart2,
 } from 'lucide-react'
 
 const navItems = [
@@ -21,6 +21,7 @@ const navItems = [
   { href: '/cashier', icon: ShoppingCart, label: 'Kasir' },
   { href: '/products', icon: Package, label: 'Produk' },
   { href: '/transactions', icon: Receipt, label: 'Transaksi' },
+  { href: '/reports', icon: BarChart2, label: 'Laporan' },
   { href: '/settings', icon: Settings, label: 'Pengaturan' },
 ]
 
@@ -53,7 +54,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const Sidebar = () => (
     <div className="flex flex-col h-full bg-white border-r border-gray-200">
-      {/* Logo */}
       <div className="px-6 py-5 border-b border-gray-100">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
@@ -68,7 +68,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
       </div>
 
-      {/* Nav */}
       <nav className="flex-1 px-3 py-4 space-y-1">
         {navItems.map(({ href, icon: Icon, label }) => {
           const active = pathname === href
@@ -90,7 +89,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         })}
       </nav>
 
-      {/* Logout */}
       <div className="px-3 py-4 border-t border-gray-100">
         <button
           onClick={handleLogout}
@@ -106,12 +104,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
 
-      {/* Sidebar Desktop */}
       <aside className="hidden md:flex w-60 flex-shrink-0 flex-col">
         <Sidebar />
       </aside>
 
-      {/* Sidebar Mobile Overlay */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 md:hidden">
           <div
@@ -124,10 +120,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
       )}
 
-      {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-
-        {/* Topbar Mobile */}
         <header className="md:hidden flex items-center gap-3 px-4 py-3 bg-white border-b border-gray-200">
           <button
             onClick={() => setSidebarOpen(true)}
@@ -138,7 +131,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <span className="font-bold text-gray-800 text-sm">{businessName}</span>
         </header>
 
-        {/* Page Content */}
         <main className="flex-1 overflow-y-auto">
           {children}
         </main>

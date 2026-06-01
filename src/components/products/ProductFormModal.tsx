@@ -93,15 +93,10 @@ export default function ProductFormModal({ product, categories, onClose }: Props
     }
 
     if (isEdit) {
-      const { error } = await supabase
-        .from('products')
-        .update(payload)
-        .eq('id', product.id)
+      const { error } = await supabase.from('products').update(payload).eq('id', product.id)
       if (error) { setError(error.message); setLoading(false); return }
     } else {
-      const { error } = await supabase
-        .from('products')
-        .insert({ ...payload, user_id: user.id })
+      const { error } = await supabase.from('products').insert({ ...payload, user_id: user.id })
       if (error) { setError(error.message); setLoading(false); return }
     }
 
@@ -112,11 +107,12 @@ export default function ProductFormModal({ product, categories, onClose }: Props
   const set = (key: string, value: unknown) =>
     setForm(prev => ({ ...prev, [key]: value }))
 
+  const inputClass = "w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
       <div className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
 
-        {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white">
           <h3 className="font-bold text-gray-900">{isEdit ? 'Edit Produk' : 'Tambah Produk'}</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
@@ -155,18 +151,20 @@ export default function ProductFormModal({ product, categories, onClose }: Props
               value={form.name}
               onChange={e => set('name', e.target.value)}
               placeholder="Contoh: Kopi Hitam"
-              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className={inputClass}
             />
           </div>
 
           {/* SKU */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">SKU <span className="text-gray-400">(opsional)</span></label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              SKU <span className="text-gray-400">(opsional)</span>
+            </label>
             <input
               value={form.sku}
               onChange={e => set('sku', e.target.value)}
               placeholder="Contoh: KOP-001"
-              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className={inputClass}
             />
           </div>
 
@@ -180,7 +178,7 @@ export default function ProductFormModal({ product, categories, onClose }: Props
                 min={0}
                 value={form.price}
                 onChange={e => set('price', e.target.value)}
-                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className={inputClass}
               />
             </div>
             <div>
@@ -190,7 +188,7 @@ export default function ProductFormModal({ product, categories, onClose }: Props
                 min={0}
                 value={form.cost_price}
                 onChange={e => set('cost_price', e.target.value)}
-                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className={inputClass}
               />
             </div>
           </div>
@@ -205,7 +203,7 @@ export default function ProductFormModal({ product, categories, onClose }: Props
                 min={0}
                 value={form.stock}
                 onChange={e => set('stock', e.target.value)}
-                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className={inputClass}
               />
             </div>
             <div>
@@ -213,7 +211,7 @@ export default function ProductFormModal({ product, categories, onClose }: Props
               <select
                 value={form.unit}
                 onChange={e => set('unit', e.target.value)}
-                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className={inputClass}
               >
                 {['pcs', 'cup', 'porsi', 'lusin', 'kg', 'gram', 'liter', 'botol', 'pack', 'box'].map(u => (
                   <option key={u} value={u}>{u}</option>
@@ -228,7 +226,7 @@ export default function ProductFormModal({ product, categories, onClose }: Props
             <select
               value={form.category_id}
               onChange={e => set('category_id', e.target.value)}
-              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className={inputClass}
             >
               <option value="">— Tanpa Kategori —</option>
               {categories.map(c => (
