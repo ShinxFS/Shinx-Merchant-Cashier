@@ -73,8 +73,8 @@ export default function RegisterPage() {
               value={businessName}
               onChange={e => setBusinessName(e.target.value)}
               required
-              placeholder="Toko Shinx"
-              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              placeholder="Nama Toko Kamu"
+              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
           </div>
 
@@ -86,7 +86,7 @@ export default function RegisterPage() {
               onChange={e => setEmail(e.target.value)}
               required
               placeholder="nama@email.com"
-              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
           </div>
 
@@ -99,7 +99,7 @@ export default function RegisterPage() {
               required
               minLength={6}
               placeholder="Minimal 6 karakter"
-              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
           </div>
 

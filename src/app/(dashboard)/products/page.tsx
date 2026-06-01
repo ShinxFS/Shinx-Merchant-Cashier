@@ -106,7 +106,7 @@ export default function ProductsPage() {
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder="Cari nama atau SKU..."
-          className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+          className="w-full pl-9 pr-4 py-2.5 border border-gray-200 text-gray-900 placeholder-gray-400 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
         />
       </div>
 
