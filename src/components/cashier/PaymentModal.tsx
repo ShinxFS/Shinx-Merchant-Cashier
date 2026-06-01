@@ -15,6 +15,8 @@ const paymentMethods = [
   { id: 'ewallet', label: 'E-Wallet', icon: Wallet },
 ]
 
+const inputClass = "w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+
 export default function PaymentModal({ subtotal, onConfirm, onClose, loading }: Props) {
   const [method, setMethod] = useState('cash')
   const [amountPaid, setAmountPaid] = useState('')
@@ -64,13 +66,13 @@ export default function PaymentModal({ subtotal, onConfirm, onClose, loading }: 
               <p className="text-xs font-semibold text-gray-500 uppercase">Diskon</p>
             </div>
             <div className="flex gap-2">
-              <div className="flex rounded-lg border border-gray-200 overflow-hidden text-xs">
+              <div className="flex rounded-lg border border-gray-300 overflow-hidden text-xs">
                 <button
                   onClick={() => { setDiscountType('nominal'); setDiscountValue('') }}
                   className={`px-3 py-1.5 font-medium transition-colors ${
                     discountType === 'nominal'
                       ? 'bg-indigo-600 text-white'
-                      : 'text-gray-500 hover:bg-gray-50'
+                      : 'text-gray-600 hover:bg-gray-50'
                   }`}
                 >
                   Rp
@@ -80,7 +82,7 @@ export default function PaymentModal({ subtotal, onConfirm, onClose, loading }: 
                   className={`px-3 py-1.5 font-medium transition-colors ${
                     discountType === 'percent'
                       ? 'bg-indigo-600 text-white'
-                      : 'text-gray-500 hover:bg-gray-50'
+                      : 'text-gray-600 hover:bg-gray-50'
                   }`}
                 >
                   %
@@ -93,7 +95,7 @@ export default function PaymentModal({ subtotal, onConfirm, onClose, loading }: 
                 value={discountValue}
                 onChange={e => setDiscountValue(e.target.value)}
                 placeholder={discountType === 'percent' ? 'Contoh: 10' : 'Nominal diskon'}
-                className="flex-1 px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className={inputClass}
               />
             </div>
           </div>
@@ -111,7 +113,7 @@ export default function PaymentModal({ subtotal, onConfirm, onClose, loading }: 
               value={taxPercent}
               onChange={e => setTaxPercent(e.target.value)}
               placeholder="Contoh: 11 untuk PPN 11%"
-              className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className={inputClass}
             />
           </div>
 
@@ -152,7 +154,7 @@ export default function PaymentModal({ subtotal, onConfirm, onClose, loading }: 
                   className={`flex flex-col items-center gap-1.5 py-3 rounded-xl border text-xs font-medium transition-all ${
                     method === id
                       ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
-                      : 'border-gray-200 text-gray-500 hover:border-gray-300'
+                      : 'border-gray-200 text-gray-600 hover:border-gray-300'
                   }`}
                 >
                   <Icon size={18} />
@@ -171,14 +173,14 @@ export default function PaymentModal({ subtotal, onConfirm, onClose, loading }: 
                 value={amountPaid}
                 onChange={e => setAmountPaid(e.target.value)}
                 placeholder="Masukkan nominal..."
-                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className={inputClass}
               />
               <div className="flex gap-2 mt-2 flex-wrap">
                 {quickAmounts.map(a => (
                   <button
                     key={a}
                     onClick={() => setAmountPaid(String(a))}
-                    className="text-xs px-2.5 py-1 bg-gray-100 rounded-lg hover:bg-indigo-100 hover:text-indigo-700 transition-colors"
+                    className="text-xs px-2.5 py-1 bg-gray-100 text-gray-700 rounded-lg hover:bg-indigo-100 hover:text-indigo-700 transition-colors"
                   >
                     {formatRupiah(a)}
                   </button>
