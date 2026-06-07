@@ -118,7 +118,7 @@ export default function ReceiptModal({
           {/* Preview Struk */}
           <div className="p-5">
             <div className="bg-gray-50 rounded-xl p-4 font-mono text-xs space-y-1">
-              <p className="text-center font-bold text-sm">{data.business_name}</p>
+              <p className="text-center font-bold text-sm text-gray-900 placeholder-gray-400">{data.business_name}</p>
               {data.address && <p className="text-center text-gray-500">{data.address}</p>}
               {data.phone && <p className="text-center text-gray-500">{data.phone}</p>}
               <p className="text-center text-gray-300">{'- '.repeat(16)}</p>
