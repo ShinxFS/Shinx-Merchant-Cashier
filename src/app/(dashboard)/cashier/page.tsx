@@ -14,7 +14,7 @@ interface Product {
   id: string
   name: string
   price: number
-  cost_price: number
+  cost_price?: number
   stock: number
   image_url: string | null
   categories?: { name: string; color: string } | null
