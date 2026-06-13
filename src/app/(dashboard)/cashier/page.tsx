@@ -14,6 +14,7 @@ interface Product {
   id: string
   name: string
   price: number
+  cost_price: number
   stock: number
   image_url: string | null
   categories?: { name: string; color: string } | null
@@ -130,15 +131,20 @@ export default function CashierPage() {
       return
     }
 
+    // Simpan transaction_items dengan cost_price
     await supabase.from('transaction_items').insert(
-      cart.map(i => ({
-        transaction_id: tx.id,
-        product_id: i.id,
-        product_name: i.name,
-        quantity: i.quantity,
-        unit_price: i.price,
-        subtotal: i.price * i.quantity,
-      }))
+      cart.map(i => {
+        const product = products.find(p => p.id === i.id)
+        return {
+          transaction_id: tx.id,
+          product_id: i.id,
+          product_name: i.name,
+          quantity: i.quantity,
+          unit_price: i.price,
+          cost_price: product?.cost_price ?? 0,
+          subtotal: i.price * i.quantity,
+        }
+      })
     )
 
     for (const item of cart) {
