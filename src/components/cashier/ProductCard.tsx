@@ -5,6 +5,7 @@ interface Product {
   id: string
   name: string
   price: number
+  cost_price?: number
   stock: number
   image_url: string | null
   categories?: { name: string; color: string } | null
@@ -29,7 +30,6 @@ export default function ProductCard({
           : 'border-gray-200 hover:border-indigo-300 hover:shadow-md active:scale-95'
       }`}
     >
-      {/* Gambar / Placeholder */}
       <div className="w-full aspect-square rounded-lg bg-gray-100 mb-2 overflow-hidden flex items-center justify-center">
         {product.image_url ? (
           <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
@@ -38,10 +38,10 @@ export default function ProductCard({
         )}
       </div>
 
-      {/* Nama */}
-      <p className="text-sm font-medium text-gray-800 leading-tight line-clamp-2">{product.name}</p>
+      <p className="text-sm font-medium text-gray-800 leading-tight line-clamp-2">
+        {product.name}
+      </p>
 
-      {/* Kategori */}
       {product.categories && (
         <span
           className="inline-block text-xs px-1.5 py-0.5 rounded mt-1 font-medium"
@@ -54,7 +54,6 @@ export default function ProductCard({
         </span>
       )}
 
-      {/* Harga & Stok */}
       <div className="flex items-center justify-between mt-2">
         <p className="text-sm font-bold text-indigo-600">{formatRupiah(product.price)}</p>
         <div className="flex items-center gap-1">
