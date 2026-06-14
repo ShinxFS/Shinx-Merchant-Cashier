@@ -29,6 +29,52 @@ interface Props {
   onClose: () => void
 }
 
+// Fungsi compress gambar pakai Canvas
+const compressImage = (file: File, quality = 0.75): Promise<File> => {
+  return new Promise((resolve) => {
+    const reader = new FileReader()
+    reader.readAsDataURL(file)
+    reader.onload = (e) => {
+      const img = new Image()
+      img.src = e.target?.result as string
+      img.onload = () => {
+        const canvas = document.createElement('canvas')
+
+        // Max dimensi 400px
+        const MAX_SIZE = 400
+        let { width, height } = img
+        if (width > MAX_SIZE || height > MAX_SIZE) {
+          if (width > height) {
+            height = Math.round((height * MAX_SIZE) / width)
+            width = MAX_SIZE
+          } else {
+            width = Math.round((width * MAX_SIZE) / height)
+            height = MAX_SIZE
+          }
+        }
+
+        canvas.width = width
+        canvas.height = height
+        const ctx = canvas.getContext('2d')!
+        ctx.drawImage(img, 0, 0, width, height)
+
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) { resolve(file); return }
+            const compressed = new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), {
+              type: 'image/jpeg',
+              lastModified: Date.now(),
+            })
+            resolve(compressed)
+          },
+          'image/jpeg',
+          quality
+        )
+      }
+    }
+  })
+}
+
 export default function ProductFormModal({ product, categories, onClose }: Props) {
   const supabase = createClient()
   const isEdit = !!product
@@ -48,18 +94,39 @@ export default function ProductFormModal({ product, categories, onClose }: Props
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState(product?.image_url ?? '')
   const [loading, setLoading] = useState(false)
+  const [compressing, setCompressing] = useState(false)
   const [error, setError] = useState('')
+  const [imageInfo, setImageInfo] = useState<{ original: string; compressed: string } | null>(null)
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-    setImageFile(file)
-    setImagePreview(URL.createObjectURL(file))
+
+    setCompressing(true)
+    const originalSize = (file.size / 1024 / 1024).toFixed(2)
+
+    try {
+      const compressed = await compressImage(file, 0.75)
+      const compressedSize = (compressed.size / 1024 / 1024).toFixed(2)
+
+      setImageFile(compressed)
+      setImagePreview(URL.createObjectURL(compressed))
+      setImageInfo({
+        original: `${originalSize} MB`,
+        compressed: `${compressedSize} MB`,
+      })
+    } catch {
+      // Kalau gagal compress, pakai file asli
+      setImageFile(file)
+      setImagePreview(URL.createObjectURL(file))
+    } finally {
+      setCompressing(false)
+    }
   }
 
   const uploadImage = async (userId: string): Promise<string | null> => {
     if (!imageFile) return form.image_url || null
-    const ext = imageFile.name.split('.').pop()
+    const ext = 'jpg'
     const path = `${userId}/${Date.now()}.${ext}`
     const { error } = await supabase.storage
       .from('product-images')
@@ -128,18 +195,33 @@ export default function ProductFormModal({ product, categories, onClose }: Props
           {/* Upload Gambar */}
           <div className="flex items-center gap-4">
             <div className="w-20 h-20 rounded-xl bg-gray-100 flex items-center justify-center overflow-hidden flex-shrink-0">
-              {imagePreview
-                ? <img src={imagePreview} alt="" className="w-full h-full object-cover" />
-                : <span className="text-3xl">🛍️</span>
-              }
+              {compressing ? (
+                <span className="text-xs text-gray-400">Kompres...</span>
+              ) : imagePreview ? (
+                <img src={imagePreview} alt="" className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-3xl">🛍️</span>
+              )}
             </div>
             <div>
               <label className="cursor-pointer flex items-center gap-2 text-sm text-indigo-600 font-medium hover:text-indigo-700">
                 <Upload size={15} />
-                Upload Foto
-                <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
+                {compressing ? 'Mengompres...' : 'Upload Foto'}
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleImageChange}
+                  disabled={compressing}
+                />
               </label>
-              <p className="text-xs text-gray-400 mt-1">JPG, PNG max 2MB</p>
+              {imageInfo ? (
+                <p className="text-xs text-green-600 mt-1">
+                  ✅ {imageInfo.original} → {imageInfo.compressed}
+                </p>
+              ) : (
+                <p className="text-xs text-gray-400 mt-1">JPG, PNG — otomatis dikompres</p>
+              )}
             </div>
           </div>
 
@@ -260,10 +342,10 @@ export default function ProductFormModal({ product, categories, onClose }: Props
             </button>
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || compressing}
               className="flex-1 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors"
             >
-              {loading ? 'Menyimpan...' : isEdit ? 'Simpan Perubahan' : 'Tambah Produk'}
+              {loading ? 'Menyimpan...' : compressing ? 'Mengompres...' : isEdit ? 'Simpan Perubahan' : 'Tambah Produk'}
             </button>
           </div>
         </form>
