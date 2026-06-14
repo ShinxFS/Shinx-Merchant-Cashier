@@ -40,8 +40,8 @@ const compressImage = (file: File, quality = 0.75): Promise<File> => {
       img.onload = () => {
         const canvas = document.createElement('canvas')
 
-        // Max dimensi 400px
-        const MAX_SIZE = 400
+        // Max dimensi 320px
+        const MAX_SIZE = 320
         let { width, height } = img
         if (width > MAX_SIZE || height > MAX_SIZE) {
           if (width > height) {
